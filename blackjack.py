@@ -87,6 +87,7 @@
 #             move = 'N'
 
 import pygame
+import time
 import random
 
 # Initialize Pygame and fonts
@@ -152,7 +153,7 @@ class Card:
 class Deck:
     def __init__(self):
         suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-        values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
         # Create full 52 card deck via nested loop
         self.cards = [Card(suit, val) for suit in suits for val in values]
 
@@ -204,16 +205,6 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        
-        # Click the deck to add a new card 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            mx, my = pygame.mouse.get_pos()
-            
-            # Check if user clicked the static deck position and deck has cards left
-            if DECK_RECT.collidepoint(mx, my) and len(deck.cards) > 0:
-                # pop() returns a single Card object directly instead of a list
-                new_card = deck.cards.pop() 
-                your_hand.append(new_card)
     
     # 2. Drawing pipeline (Moved OUTSIDE the event loop)
     screen.fill(GREEN)  # Draw poker table background
@@ -226,18 +217,24 @@ while running:
         start_x = 155 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
         start_y = 220
         card.draw(screen, start_x, start_y)
+        down_card_total = card.value
+        print(down_card_total)
     
     # Draw dealt your_hand spread horizontally on right
     for i, card in enumerate(your_hand):
         start_x = 200 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
         start_y = 425
         card.draw(screen, start_x, start_y)
+        your_hand_total = card.value
+        print(your_hand_total)
 
     # Draw dealt dealer_hand spread horizontally on right
     for i, card in enumerate(dealer_hand):
         start_x = 315 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
         start_y = 30
         card.draw(screen, start_x, start_y)
+        dealer_hand_total = card.value
+        print(dealer_hand_total)
 
     # Draw dealt dealer_hidden_card spread horizontally on right
     for i, card in enumerate(dealer_hidden_card):
@@ -245,13 +242,36 @@ while running:
         start_y = 30
         card.is_face_up = False
         card.draw(screen, start_x, start_y)
+        hidden_card_total = card.value
+        print(hidden_card_total)
+
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_h]:
+        time.sleep(.5)
+        print("h")
+        new_card = deck.cards.pop() 
+        your_hand.append(new_card)
+        your_turn = 0
+        
+    if keys[pygame.K_s]:
+        time.sleep(.5)
+        your_turn = 0
+
 
     draw_text(screen, "Dealers Hand", font, (255, 255, 255), 30, 50)    
     draw_text(screen, "Your Hand", font, (255, 255, 255), 50, 440)
+    draw_text(screen, "Your Hand", font, (255, 255, 255), 50, 470)
+
     if your_turn == 1:
         draw_text(screen, "Its your move. Press H to hit or S to stand", font, (255, 255, 255), 290, 280)
 
-        
+    if your_turn == 0:
+        draw_text(screen, "Dealers move, Please wait...", font, (255, 255, 255), 290, 280)
+        new_card = deck.cards.pop() 
+        dealer_hand.append(new_card)
+        your_turn = 1
+
     pygame.display.flip()
     clock.tick(60)
 

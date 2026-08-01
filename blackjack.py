@@ -285,14 +285,12 @@ while running:
         pygame.draw.rect(screen, GREEN, popup_rect, 3)  # 3px border
 
         # Render text surfaces
-        title_surf = font.render("Alert Box", True, BLACK)
-        text_surf = font.render("This is a custom pop-up window!", True, BLACK)
-        close_surf = font.render("Press ESC to close", True, BLACK)
+        title_surf = font.render("Alert Box", True, WHITE)
+        text_surf = font.render("This is a custom pop-up window!", True, WHITE)
 
         # Draw/Blit text inside the pop-up area
         screen.blit(title_surf, (popup_x + 20, popup_y + 20))
         screen.blit(text_surf, (popup_x + 20, popup_y + 90))
-        screen.blit(close_surf, (popup_x + 20, popup_y + 190))
     
     pygame.display.flip()
     clock.tick(60)

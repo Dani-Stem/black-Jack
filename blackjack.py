@@ -267,6 +267,10 @@ while running:
         draw_text(screen, "Its your move. Press H to hit or S to stand", font, (255, 255, 255), 290, 280)
 
     if your_turn == 0:
+        # draw_text(screen, "Dealers move, Please wait...", font, (255, 255, 255), 290, 280)
+        # new_card = deck.cards.pop() 
+        # dealer_hand.append(new_card)
+        # your_turn = 1
         show_popup = True
 
     if keys[pygame.K_RETURN] and show_popup:

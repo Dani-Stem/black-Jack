@@ -201,7 +201,6 @@ def draw_text(surface, text, font, color, x, y):
     text_surface = font.render(text, True, color)
     surface.blit(text_surface, (x, y))
 
-
 while running:
     # 1. Event Handling
     for event in pygame.event.get():
@@ -260,7 +259,6 @@ while running:
         time.sleep(.5)
         your_turn = 0
 
-
     draw_text(screen, "Dealers Hand", font, (255, 255, 255), 30, 50)    
     draw_text(screen, "Your Hand", font, (255, 255, 255), 50, 440)
     draw_text(screen, "", font, (255, 255, 255), 50, 470)
@@ -275,17 +273,16 @@ while running:
         # your_turn = 1
         show_popup = True
 
-
     if show_popup:
         # Define pop-up dimensions and position (centered)
-        popup_width, popup_height = 400, 250
-        popup_x = 480
-        popup_y = 175
+        popup_width, popup_height = 550, 150
+        popup_x = 300
+        popup_y = 218
         popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
 
         # Draw pop-up background and border
-        pygame.draw.rect(screen, WHITE, popup_rect)
-        pygame.draw.rect(screen, BLACK, popup_rect, 3)  # 3px border
+        pygame.draw.rect(screen, GREEN, popup_rect)
+        pygame.draw.rect(screen, GREEN, popup_rect, 3)  # 3px border
 
         # Render text surfaces
         title_surf = font.render("Alert Box", True, BLACK)
@@ -297,7 +294,6 @@ while running:
         screen.blit(text_surf, (popup_x + 20, popup_y + 90))
         screen.blit(close_surf, (popup_x + 20, popup_y + 190))
     
-
     pygame.display.flip()
     clock.tick(60)
 

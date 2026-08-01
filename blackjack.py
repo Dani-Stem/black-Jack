@@ -267,11 +267,12 @@ while running:
         draw_text(screen, "Its your move. Press H to hit or S to stand", font, (255, 255, 255), 290, 280)
 
     if your_turn == 0:
-        # draw_text(screen, "Dealers move, Please wait...", font, (255, 255, 255), 290, 280)
-        # new_card = deck.cards.pop() 
-        # dealer_hand.append(new_card)
-        # your_turn = 1
         show_popup = True
+
+    if keys[pygame.K_RETURN] and show_popup:
+        # Close pop-up with Escape
+        show_popup = False
+        your_turn = 1
 
     if show_popup:
         # Define pop-up dimensions and position (centered)
@@ -285,13 +286,14 @@ while running:
         pygame.draw.rect(screen, GREEN, popup_rect, 3)  # 3px border
 
         # Render text surfaces
-        title_surf = font.render("Alert Box", True, WHITE)
-        text_surf = font.render("This is a custom pop-up window!", True, WHITE)
+        text_surf = font.render("Dealers move...", True, WHITE)
+        next_surf = font.render("Press Enter to Continue", True, WHITE)
 
         # Draw/Blit text inside the pop-up area
-        screen.blit(title_surf, (popup_x + 20, popup_y + 20))
-        screen.blit(text_surf, (popup_x + 20, popup_y + 90))
+        screen.blit(text_surf, (popup_x + 20, popup_y + 40))
+        screen.blit(next_surf, (popup_x + 20, popup_y + 90))
     
+
     pygame.display.flip()
     clock.tick(60)
 

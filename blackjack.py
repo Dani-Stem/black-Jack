@@ -114,6 +114,352 @@ CARD_HEIGHT = 145
 
 # Varaibles 
 your_turn = 1
+outcome = 0
+show_popup = False
+
+
+class Card:
+    def __init__(self, suit, value):
+        self.suit = suit          # 'Hearts', 'Diamonds', 'Clubs', 'Spades'
+        self.value = value        # '2' through '10', 'J', 'Q', 'K', 'A'
+        self.is_face_up = True   # Toggle visibility state
+        
+        # Assign colors based on suit
+        self.color = RED if suit in ['Hearts', 'Diamonds'] else BLACK
+        
+        # Set up fonts for rendering text labels
+        self.font = pygame.font.SysFont('Arial', 24, bold=True)
+        self.suit_symbols = {'Hearts': '♥', 'Diamonds': '♦', 'Clubs': '♣', 'Spades': '♠'}
+
+    def draw(self, surface, x, y):
+        # 1. Base Card Outline & Background
+        card_rect = pygame.Rect(x, y, CARD_WIDTH, CARD_HEIGHT)
+        pygame.draw.rect(surface, WHITE, card_rect, border_radius=8)
+        pygame.draw.rect(surface, BLACK, card_rect, width=2, border_radius=8)
+        
+        if self.is_face_up:
+            # 2. Draw Text Details (Value and Suit symbol)
+            symbol = self.suit_symbols[self.suit]
+            text_surface = self.font.render(f"{self.value}{symbol}", True, self.color)
+            
+            # Position text in top-left and bottom-right corners
+            surface.blit(text_surface, (x + 8, y + 8))
+            
+            # Flipped version or lower corner text
+            lower_text = self.font.render(f"{self.value}", True, self.color)
+            surface.blit(lower_text, (x + CARD_WIDTH - 25, y + CARD_HEIGHT - 35))
+        else:
+            # Draw Card Back Design
+            inner_rect = card_rect.inflate(-12, -12)
+            pygame.draw.rect(surface, CARD_BACK_COLOR, inner_rect, border_radius=5)
+
+class Deck:
+    def __init__(self):
+        suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+        values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
+        # Create full 52 card deck via nested loop
+        self.cards = [Card(suit, val) for suit in suits for val in values]
+
+    def shuffle(self):
+        random.shuffle(self.cards)
+
+    def draw_deck_pile(self, surface, x, y):
+        # Draw overlapping cards to look like a thick deck pile
+        for i in range(min(len(self.cards), 5)):
+            offset_x = x + (i * 2)
+            offset_y = y - (i * 2)
+            
+            # Simple card back placeholder for the main deck pile
+            rect = pygame.Rect(offset_x, offset_y, CARD_WIDTH, CARD_HEIGHT)
+            pygame.draw.rect(surface, WHITE, rect, border_radius=8)
+            pygame.draw.rect(surface, CARD_BACK_COLOR, rect.inflate(-10, -10), border_radius=5)
+            pygame.draw.rect(surface, BLACK, rect, width=2, border_radius=8)
+
+# Core Setup
+deck = Deck()
+deck.shuffle()
+
+# Deal a test your_hand of cards to display side by side
+down_card = [deck.cards.pop() for _ in range(1)]
+
+# Deal a test your_hand of cards to display side by side
+your_hand = [deck.cards.pop() for _ in range(2)]
+
+# Deal a test dealer_hand of cards to display side by side
+dealers_hand = [deck.cards.pop() for _ in range(1)]
+
+# Deal a test dealer_hand of cards to display side by side
+dealers_hidden_card = [deck.cards.pop() for _ in range(1)]
+
+# Main Game Loop
+running = True
+clock = pygame.time.Clock()
+
+# Define the exact deck box for click detection
+DECK_RECT = pygame.Rect(100, 250, CARD_WIDTH, CARD_HEIGHT)
+
+def draw_text(surface, text, font, color, x, y):
+    text_surface = font.render(text, True, color)
+    surface.blit(text_surface, (x, y))
+
+while running:
+    # 1. Event Handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    
+    # 2. Drawing pipeline (Moved OUTSIDE the event loop)
+    screen.fill(GREEN)  # Draw poker table background
+    
+    # Draw remaining main deck pile on left
+    deck.draw_deck_pile(screen, 35, 230)
+
+    your_hand_total = 0 
+    dealers_hand_total = 0
+
+    # Draw dealt down_card spread horizontally on right
+    for i, card in enumerate(down_card):
+        start_x = 155 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
+        start_y = 220
+        card.draw(screen, start_x, start_y)
+        if card.value == 'A':
+            if your_hand_total >= 11:
+                your_hand_total = your_hand_total + 1
+            else:
+                your_hand_total = your_hand_total + 11
+
+            if dealers_hand_total >= 11:
+                dealers_hand_total = dealers_hand_total + 1
+            else:
+                dealers_hand_total = dealers_hand_total + 11
+        elif card.value == 'K' or card.value == "Q" or card.value == "J":
+            your_hand_total = 10
+            dealers_hand_total = 10
+        else:
+            your_hand_total = card.value
+            dealers_hand_total = card.value
+    
+    # Draw dealt your_hand spread horizontally on right
+    for i, card in enumerate(your_hand):
+        start_x = 200 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
+        start_y = 425
+        card.draw(screen, start_x, start_y)
+        if card.value == 'A':
+            if your_hand_total >= 11:
+                your_hand_total = your_hand_total + 1
+            else:
+                your_hand_total = your_hand_total + 11
+        elif card.value == 'K' or card.value == "Q" or card.value == "J":
+            your_hand_total = your_hand_total + 10
+        else:
+            your_hand_total = your_hand_total + card.value
+
+    # Draw dealt dealer_hand spread horizontally on right
+    for i, card in enumerate(dealers_hand):
+        start_x = 315 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
+        start_y = 30
+        card.draw(screen, start_x, start_y)
+        if card.value == 'A':
+            if dealers_hand_total >= 11:
+                dealers_hand_total = dealers_hand_total + 1
+            else:
+                dealers_hand_total = dealers_hand_total + 11
+        elif card.value == 'K' or card.value == "Q" or card.value == "J":
+            dealers_hand_total = dealers_hand_total + 10
+        else:
+            dealers_hand_total = dealers_hand_total + card.value
+
+    # Draw dealt dealer_hidden_card spread horizontally on right
+    for i, card in enumerate(dealers_hidden_card):
+        start_x = 200 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
+        start_y = 30
+        if outcome != 0:
+            card.is_face_up = True
+        else:
+            card.is_face_up = False
+        card.draw(screen, start_x, start_y)
+        if card.value == 'A':
+            if dealers_hand_total >= 11:
+                dealers_hand_total = dealers_hand_total + 1
+            else:
+                dealers_hand_total = dealers_hand_total + 11
+
+        elif card.value == 'K' or card.value == "Q" or card.value == "J":
+            dealers_hand_total = dealers_hand_total + 10
+        else:
+            dealers_hand_total = dealers_hand_total + card.value
+
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_h]:
+        time.sleep(.5)
+        print("h")
+        new_card = deck.cards.pop() 
+        your_hand.append(new_card)
+        your_turn = 0
+        
+    if keys[pygame.K_s]:
+        time.sleep(.5)
+        your_turn = 0
+
+    draw_text(screen, "Dealers Hand", font, (255, 255, 255), 30, 50)   
+    draw_text(screen, str(dealers_hand_total), font, (255, 255, 255), 30, 80) 
+    draw_text(screen, "Your Hand", font, (255, 255, 255), 50, 440)
+    draw_text(screen, str(your_hand_total), font, (255, 255, 255), 50, 470)
+
+    if your_turn == 1:
+        draw_text(screen, "Its your move. Press H to hit or S to stand", font, (255, 255, 255), 290, 280)
+
+    if your_turn == 0:
+        new_card = deck.cards.pop() 
+        dealers_hand.append(new_card)
+        your_turn = 1
+        show_popup = True
+
+    if keys[pygame.K_RETURN] and show_popup:
+        # Close pop-up with Escape
+        if outcome != 0:
+            break
+        else:
+            show_popup = False
+            your_turn = 1
+     
+    if your_hand_total == 21 or dealers_hand_total > 21:
+        show_popup = True
+        outcome = 1
+    elif your_hand_total > 21 or dealers_hand_total == 21:
+        show_popup = True
+        outcome = 2
+    elif your_hand_total > 21 and dealers_hand_total > 21:
+        for item in your_hand:
+            if item == "A":
+                your_hand_total =- 10
+            if your_hand_total == 21:
+                break
+        for item in dealers_hand:
+            if item == "A":
+                dealers_hand_total =- 10
+            if dealers_hand_total == 21:
+                break
+
+    if your_hand_total > 21 and dealers_hand_total > 21: 
+        if your_hand_total > dealers_hand_total:
+            outcome = 2
+        else:
+            outcome = 1
+
+    if show_popup:
+        # Define pop-up dimensions and position (centered)
+        popup_width, popup_height = 550, 150
+        popup_x = 290
+        popup_y = 218
+        popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+        # Draw pop-up background and border
+        pygame.draw.rect(screen, GREEN, popup_rect)
+        pygame.draw.rect(screen, GREEN, popup_rect, 3)  # 3px border
+
+        if outcome == 0:
+            # Render text surfaces
+            text_surf = font.render("Dealers move...", True, WHITE)
+            next_surf = font.render("Press Enter to Continue", True, WHITE)
+        
+        elif outcome == 1:
+            text_surf = font.render("You Win!", True, WHITE)
+            next_surf = font.render("Press Enter to Close", True, WHITE)
+
+        elif outcome == 2:
+            text_surf = font.render("Dealer Wins", True, WHITE)
+            next_surf = font.render("Press Enter to Close", True, WHITE)
+            
+        # Draw/Blit text inside the pop-up area
+        screen.blit(text_surf, (popup_x + 20, popup_y + 40))
+        screen.blit(next_surf, (popup_x + 20, popup_y + 90))
+    
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
+# time.sleep(.5)
+# down_card = random.randint(2,11)
+# print("The Dealer place down a card: " + str(down_card))
+# time.sleep(.5)
+
+# for i in your_cards:
+
+#     if your_turn == 1:
+
+#         move = input("Enter H to hit or S to Stand: ").lower()
+#         if move == "h":
+#             next_card = random.randint(2, 11)
+#             your_cards.insert(1, next_card)
+#             print(your_cards)
+#             cards_total = sum(your_cards)
+#             time.sleep(.5)
+#             if cards_total > 21:
+#                 print(cards_total)
+#                 print("you lose..")
+#                 time.sleep(.5)
+#                 break
+#             else: 
+#                 move = "N"
+#             move = "N"
+#             your_turn = 0
+            
+#         elif move == "s":
+#             your_turn = 0
+#             move = "N"
+#         else:
+#             print("Invalid Input, please try again.")
+#             time.sleep(.5)
+
+#     else: 
+#         time.sleep(.5)
+#         print("Dealers move...")
+#         time.sleep(.5)
+#         next_card = random.randint(2, 11)
+#         dealers_cards.insert(1, next_card)
+#         print("Dealers cards: " + str(dealers_cards[:-1]) + ", *")
+#         cards_total = sum(dealers_cards)
+#         if cards_total > 21:
+#             time.sleep(.5)
+#             print("Dealer exceeded 21..")
+#             time.sleep(.5)
+#             print("You win!")
+#             time.sleep(.5)
+#             break
+#         else:
+#             your_turn = 1
+#             move = 'N'
+
+import pygame
+import time
+import random
+
+# Initialize Pygame and fonts
+pygame.init()
+pygame.font.init()
+font = pygame.font.SysFont(None, 30)
+
+
+# Screen Configuration
+WIDTH, HEIGHT = 900, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Black Jack")
+
+# Colors
+GREEN = (34, 139, 34)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (200, 0, 0)
+CARD_BACK_COLOR = (50, 100, 200)
+
+# Card Dimensions
+CARD_WIDTH = 100
+CARD_HEIGHT = 145
+
+# Varaibles 
+your_turn = 1
 show_popup = False
 
 

@@ -180,9 +180,6 @@ deck = Deck()
 deck.shuffle()
 
 # Deal a test your_hand of cards to display side by side
-down_card = [deck.cards.pop() for _ in range(1)]
-
-# Deal a test your_hand of cards to display side by side
 your_hand = [deck.cards.pop() for _ in range(2)]
 
 # Deal a test dealer_hand of cards to display side by side
@@ -210,34 +207,9 @@ while running:
     
     # 2. Drawing pipeline (Moved OUTSIDE the event loop)
     screen.fill(GREEN)  # Draw poker table background
-    
-    # Draw remaining main deck pile on left
-    deck.draw_deck_pile(screen, 35, 230)
 
     your_hand_total = 0 
     dealers_hand_total = 0
-
-    # Draw dealt down_card spread horizontally on right
-    for i, card in enumerate(down_card):
-        start_x = 155 + (i * (CARD_WIDTH + 15))  # 15px gap spacing
-        start_y = 220
-        card.draw(screen, start_x, start_y)
-        if card.value == 'A':
-            if your_hand_total >= 11:
-                your_hand_total = your_hand_total + 1
-            else:
-                your_hand_total = your_hand_total + 11
-
-            if dealers_hand_total >= 11:
-                dealers_hand_total = dealers_hand_total + 1
-            else:
-                dealers_hand_total = dealers_hand_total + 11
-        elif card.value == 'K' or card.value == "Q" or card.value == "J":
-            your_hand_total = 10
-            dealers_hand_total = 10
-        else:
-            your_hand_total = card.value
-            dealers_hand_total = card.value
     
     # Draw dealt your_hand spread horizontally on right
     for i, card in enumerate(your_hand):
@@ -296,7 +268,6 @@ while running:
         print("h")
         new_card = deck.cards.pop() 
         your_hand.append(new_card)
-        your_turn = 0
         
     if keys[pygame.K_s]:
         time.sleep(.5)
@@ -311,9 +282,11 @@ while running:
         draw_text(screen, "Its your move. Press H to hit or S to stand", font, (255, 255, 255), 290, 280)
 
     if your_turn == 0:
-        new_card = deck.cards.pop() 
-        dealers_hand.append(new_card)
-        your_turn = 1
+        if dealers_hand_total < 17:
+            new_card = deck.cards.pop() 
+            dealers_hand.append(new_card)
+        else:
+            your_turn = 3
         show_popup = True
 
     if keys[pygame.K_RETURN] and show_popup:
@@ -330,23 +303,27 @@ while running:
     elif your_hand_total > 21 or dealers_hand_total == 21:
         show_popup = True
         outcome = 2
-    elif your_hand_total > 21 and dealers_hand_total > 21:
-        for item in your_hand:
-            if item == "A":
-                your_hand_total =- 10
-            if your_hand_total == 21:
-                break
-        for item in dealers_hand:
-            if item == "A":
-                dealers_hand_total =- 10
-            if dealers_hand_total == 21:
-                break
 
     if your_hand_total > 21 and dealers_hand_total > 21: 
         if your_hand_total > dealers_hand_total:
             outcome = 2
         else:
             outcome = 1
+    if your_turn == 3:
+        if your_hand_total < dealers_hand_total:
+            outcome = 2
+        else:
+            outcome = 1
+
+    for item in your_hand:
+        if "A" in your_hand:
+            if your_hand_total > 21:
+                your_hand =- 10
+
+    for item in dealers_hand:
+        if "A" in dealers_hand:
+            if dealers_hand_total > 21:
+                dealers_hand =- 10
 
     if show_popup:
         # Define pop-up dimensions and position (centered)
